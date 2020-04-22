@@ -3,7 +3,7 @@ import numpy as np
 import random
 import math as m
 from MnnClassifier import MNNClassifier
-from oneVsRest import OneVsRest
+
 
 def scale_X(X):
     c = X.shape[1]
@@ -35,17 +35,6 @@ if __name__ == '__main__':
     t2_train = t2_train.astype('int')
     t2_val = (t_val == 1).astype('int')
     t2_test = (t_test == 1).astype('int')
-    print("ovr:")
-    diff_values = [m.pow(10,-x) for x in range(1,5)]
-    ac_oneVsRest = {}
-    for df in diff_values:
-        """linReg = LinReg()
-        linReg.fit(new_X_train,t_train,diff=df)
-        ac_lin_multi[df] = linReg.accuracy(new_X_val,t2_val)"""
-        ovr = OneVsRest()
-        ovr.fit(X_train,t_train,diff=df)
-        ac_oneVsRest[df] = ovr.accuracy(X_val,t_val)
-    print("ac_ovr:",ac_oneVsRest)
     print("mnn:")
     mnn = MNNClassifier(dim_hidden=60,eta=0.001)
     mnn.fit(X_train,t_train,epochs=1000)
