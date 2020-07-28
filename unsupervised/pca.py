@@ -222,10 +222,47 @@ def encode_decode_pca(A, m):
 def test_encode_decode():
     X, y, h, w = syntheticdata.get_lfw_data()
     plt.imshow(X[0, :].reshape((h, w)), cmap=plt.cm.gray)
+    plt.show()
+
+def encode_decode_pca_with_pov(A,p):
+    # INPUT:
+    # A    [NxM] numpy data matrix (N samples, M features)
+    # p    float number between 0 and 1 denoting the POV to be preserved
+    # OUTPUT:
+    # Ahat [NxM] numpy PCA reconstructed data matrix (N samples, M features)
+    # m    integer reporting the number of dimensions selected
+    A2 = center_data(A)
+    C = compute_covariance_matrix(A2)
+    eigVal, eigVec = compute_eigenvalue_eigenvectors(C)
+    eigVal, eigVec = sort_eigenvalue_eigenvectors(eigVal, eigVec)
+    sum_eigVal = sum(eigVal)
+    pov = sum_eigVal*p
+    print(pov)
+    the_sum = 0
+    teller = 0
+    m = 0
+    while the_sum<pov:
+        the_sum += eigVal[m]
+        print(the_sum)
+        m+=1
+    cov_sum = sum([C[x][x] for x in range(C.shape[0])])
+    print(cov_sum,sum_eigVal)
+    print(p,(the_sum/sum_eigVal))
+    eigVec, Z = pca(A, m)
+    Ahat = Z @ eigVec.T
+    return Ahat, m
+
+
+def test_encode_decode_pov():
+    X, y, h, w = syntheticdata.get_lfw_data()
+    Xhat,m = encode_decode_pca_with_pov(X,0.7)
+    print(m)
+    plt.imshow(Xhat[0, :].reshape((h, w)), cmap=plt.cm.gray)
+    plt.show()
 
 
 if __name__ == '__main__':
-    test_center()
+    """test_center()
     test_matrix()
     test_eigen()
     test_sort_eigen()
@@ -235,4 +272,5 @@ if __name__ == '__main__':
     pca_on_iris()
     pca_on_labeled_data()
     pca_on_labeled_data2()
-    test_encode_decode()
+    test_encode_decode()"""
+    test_encode_decode_pov()
