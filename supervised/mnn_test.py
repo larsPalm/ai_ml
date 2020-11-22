@@ -39,3 +39,8 @@ if __name__ == '__main__':
     mnn = MNNClassifier(dim_hidden=60,eta=0.001)
     mnn.fit(X_train,t_train,epochs=1000)
     print(mnn.accuracy(X_val,t_val))
+    print('mnn2:')
+    mnn2 = MNNClassifier(dim_hidden=60,eta=0.001)
+    mnn2.fit_earlystopping(X_train,t_train,X_val,t_val)
+    print("done med fit")
+    print(mnn2.accuracy(X_val, t_val))

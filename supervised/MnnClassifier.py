@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+import matplotlib.pyplot as plt
 
 def add_bias(X):
     # Put bias in position 0
@@ -28,6 +29,10 @@ class MNNClassifier():
         self.dim_in = 0
         self.weights1 = None
         self.weights2 = None
+        self.stop = False
+        self.loss_train = []
+        self.loss_val = []
+        self.xs = []
 
         # Should you put additional code here?
 
@@ -93,3 +98,48 @@ class MNNClassifier():
     def predict(self,X):
         hidden,output = self.forward(X)
         return [np.argmax(output[x,:],axis=0) for x in range(output.shape[0])]
+
+    def mse(self,y_pred, y_true):
+        return np.square(y_pred - y_true).mean()
+
+    def earlystopping(self,X_train,t_train,X_val,t_val,e,t):
+        train_pred = np.asarray(self.predict(X_train))
+        val_pred = np.asarray(self.predict(X_val))
+        self.loss_train.append(self.mse(train_pred,t_train))
+        self.loss_val.append(self.mse(val_pred, t_val))
+        self.xs.append(e)
+        if len(self.loss_val)>1:
+            endring = self.loss_val[-2]-self.loss_val[-1]
+            #print(endring)
+            if endring<t:
+                self.stop=True
+
+
+    def fit_earlystopping(self, X_train, t_train,X_val,t_val,e_val = 10, epochs=500,treshhold=0.00001):
+        """Intialize the weights. Train *epochs* many epochs."""
+        self.dim_in = X_train.shape[1]
+        self.dim_out = len(np.unique(t_train))
+        self.weights1 = np.random.uniform(-1, 1, (self.dim_in + 1) * self.dim_hidden).reshape((self.dim_in + 1, self.dim_hidden))
+        self.weights1[0,:] = 1
+        self.weights2 = np.random.uniform(-1, 1, (self.dim_hidden + 1) * self.dim_out).reshape((self.dim_hidden + 1, self.dim_out))
+        self.weights2[0,:] = 1
+        fasit = np.zeros((len(t_train), self.dim_out))
+        for x in range(len(t_train)):
+            fasit[x, t_train[x]] = 1
+        # Initilaization
+        for e in range(epochs):
+            # Run one epoch of forward-backward
+            # Fill in the code
+            (hidden_output,output) = self.forward(X_train)
+            self.update(hidden_output,output,X_train,fasit)
+            if e % e_val == 0:
+                self.earlystopping(X_train,t_train,X_val,t_val,e,treshhold)
+                if self.stop:
+                    print('training stopped after {} epochs'.format(e))
+                    break
+        plt.plot(self.xs,self.loss_train,label='loss training set')
+        plt.plot(self.xs, self.loss_val, label='loss validating set')
+        plt.grid()
+        plt.suptitle("loss for training and validation")
+        plt.legend()
+        plt.show()
